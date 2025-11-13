@@ -185,6 +185,37 @@ export default function FPSControls({
       window.removeEventListener("__scripted_move__", handler as EventListener);
   }, [camera]);
 
+  // Listen for external teleport requests
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const body = bodyRef.current;
+      if (!body) return;
+      const detail = (e as CustomEvent).detail as
+        | { x?: number; y?: number; z?: number; keepY?: boolean; yaw?: number }
+        | undefined;
+      const t = body.translation();
+      const nx = detail?.x ?? t.x;
+      const ny = detail?.keepY ? t.y : detail?.y ?? t.y;
+      const nz = detail?.z ?? t.z;
+      // stop current scripted move and velocity, then teleport
+      overrideRef.current = null;
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      body.setTranslation({ x: nx, y: ny, z: nz }, true);
+      // optionally set yaw orientation
+      if (typeof detail?.yaw === "number") {
+        // Update camera yaw while preserving pitch
+        camera.rotation.order = "YXZ";
+        camera.rotation.y = detail.yaw;
+      }
+      // ensure controls are enabled and input neutral
+      setPlcEnabled(true);
+      setMoveAxes(0, 0);
+    };
+    window.addEventListener("__teleport_to__", handler as EventListener);
+    return () =>
+      window.removeEventListener("__teleport_to__", handler as EventListener);
+  }, [camera]);
+
   // Derived offsets
   const halfHeight = capsuleHeight / 2;
   const baseOffset = halfHeight + capsuleRadius; // center->feet offset
@@ -431,7 +462,7 @@ export default function FPSControls({
         ref={bodyRef}
         colliders={false}
         canSleep={false}
-        position={[2,0,-2]}
+        position={[8,0,1.5]}
         linearDamping={4}
         angularDamping={1}
         enabledRotations={[false, false, false]}

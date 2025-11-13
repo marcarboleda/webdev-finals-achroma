@@ -9,7 +9,7 @@ import {
   AdaptiveDpr,
 } from "@react-three/drei";
 import { Suspense, useEffect } from "react";
-import { ACESFilmicToneMapping } from "three";
+import { ACESFilmicToneMapping, SRGBColorSpace } from "three";
 import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
 import HorrorCorridor from "@/components/HorrorCorridor";
 import FPSControls from "@/components/FPSControls";
@@ -36,10 +36,10 @@ export default function SceneCanvas({
   return (
     <Canvas
       id="r3f-canvas"
-      shadows={!isTouch}
+      shadows
       dpr={[1, isTouch ? 1.5 : 2]}
-      
       gl={{
+        outputColorSpace: SRGBColorSpace,
         antialias: !isTouch,
         powerPreference: "high-performance",
         toneMapping: ACESFilmicToneMapping,
@@ -48,22 +48,17 @@ export default function SceneCanvas({
         alpha: false,
         precision: isTouch ? "mediump" : "highp",
       }}
-      camera={{ position: [0, 1.6, 5], fov: 70 }}
+      camera={{ position: [0, 1.8, 5], fov: 70 }}
     >
       <color attach="background" args={["#000"]} />
-      <fog attach="fog" args={["#0a0a0a", 5, 35]} />
+      <fog attach="fog" args={["#0a0a0a", 15, 35]} />
 
       <Suspense fallback={null}>
         <SoundProvider>
           <SoundBridge onPointerLockChange={onPointerLockChange} />
           {started && <RadioNarration />}
           <Physics gravity={[0, -9.81, 0]} debug={!isTouch}>
-            <Environment
-              preset="night"
-              background={true}
-              environmentIntensity={0.5}
-            />
-
+     
             <Basement position={[0, 1, 0]} />
 
             {/* Ground */}
@@ -83,7 +78,7 @@ export default function SceneCanvas({
 
             <FPSControls
               speed={0.9}
-              eyeHeight={3.35}
+              eyeHeight={3.85}
               capsuleHeight={1.85}
               capsuleRadius={0.25}
               onLockChange={(locked) => {

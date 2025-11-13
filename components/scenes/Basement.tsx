@@ -9,7 +9,10 @@ import { useSound } from "@/components/audio/useSound";
 function useBasementDoor(scene: THREE.Group | undefined) {
   const { sound } = useSound();
   const { camera } = useThree();
-  const _doorRef = useRef<THREE.Object3D | null>(null);
+  // Track both doors
+  const _doorStartRef = useRef<THREE.Object3D | null>(null);
+  const _doorEndRef = useRef<THREE.Object3D | null>(null);
+  // Opening animation/state for DoorStart only
   const openingRef = useRef(false);
   const openedRef = useRef(false);
   const targetYRef = useRef(0);
@@ -18,11 +21,19 @@ function useBasementDoor(scene: THREE.Group | undefined) {
   // Locate the door in the loaded scene graph
   useEffect(() => {
     if (!scene) return;
-    const door = scene.getObjectByName("Door") as THREE.Object3D | undefined;
-    if (!door) return;
-    _doorRef.current = door;
-    initialYRef.current = door.rotation.y;
-    // console.debug("Basement door found", door);
+    const doorStart = scene.getObjectByName("DoorStart") as
+      | THREE.Object3D
+      | undefined;
+    const doorEnd = scene.getObjectByName("DoorEnd") as
+      | THREE.Object3D
+      | undefined;
+    if (doorStart) {
+      _doorStartRef.current = doorStart;
+      initialYRef.current = doorStart.rotation.y;
+    }
+    if (doorEnd) {
+      _doorEndRef.current = doorEnd;
+    }
   }, [scene]);
 
   // Interaction is now unified via inputStore (pressInteract & consumeInteract)
@@ -30,12 +41,17 @@ function useBasementDoor(scene: THREE.Group | undefined) {
   // Poll mobile interact flag each frame; also advance opening animation
   useFrame((_, delta) => {
     if (consumeInteract()) {
-      tryOpen();
+      // Prioritize DoorEnd teleport logic if near
+      if (!tryDoorEndTeleport()) {
+        console.log("Trying to open DoorStart");
+        // otherwise try to open DoorStart if near
+        tryOpenStart(true);
+      }
     }
     // Animate door opening
-    const door = _doorRef.current;
+    const door = _doorStartRef.current;
     if (!door) return;
-    if (openingRef.current && !openedRef.current) {
+    if (openingRef.current) {
       const speed = 1.2; // radians per second
       const y = door.rotation.y;
       const target = targetYRef.current;
@@ -44,34 +60,48 @@ function useBasementDoor(scene: THREE.Group | undefined) {
       // clamp overshoot
       if ((step > 0 && next >= target) || (step < 0 && next <= target)) {
         next = target;
+        console.log("Door animation complete");
         openingRef.current = false;
-        openedRef.current = true;
+        openedRef.current = !openedRef.current;
       }
       door.rotation.y = next;
     }
   });
 
-  function tryOpen() {
-    const door = _doorRef.current;
-    if (!door || openedRef.current) return;
+  function tryOpenStart(withScriptedMove: boolean) {
+    const door = _doorStartRef.current;
+    if (!door) {
+      console.warn("DoorStart not found or already opened");
+      return;
+    };
     // Check proximity to camera
     const doorPos = new THREE.Vector3();
     door.getWorldPosition(doorPos);
     const dist = doorPos.distanceTo(camera.position);
     const threshold = 1.0; // meters
     if (dist <= threshold) {
-      // Rotate 90 degrees around Y to open; flip direction to open away from user
-      targetYRef.current = initialYRef.current + Math.PI / 2;
-      openingRef.current = true;
-      // play open slice
-      sound.playDoorOpen();
-      // Start scripted forward move immediately as handle turns, and look at the door
-      // get the width of the door to offset lookAt
-      const doorWidth = door.scale.x;
+      openStartDoor(withScriptedMove);
+    }
+  }
+
+  function openStartDoor(withScriptedMove: boolean) {
+    const door = _doorStartRef.current;
+    if (!door) {
+      console.warn("DoorStart not found");
+      return;
+    };
+    // Rotate 90 degrees around Y to open
+    targetYRef.current = initialYRef.current + Math.PI / 2;
+    openingRef.current = true;
+    // play open slice
+    sound.playDoorOpen();
+    if (withScriptedMove) {
+      const doorPos = new THREE.Vector3();
+      door.getWorldPosition(doorPos);
       const lookAt: [number, number, number] = [
-        doorPos.x - doorWidth / 3,
+        doorPos.x - 10,
         doorPos.y,
-        doorPos.z + 5,
+        doorPos.z,
       ];
       window.dispatchEvent(
         new CustomEvent("__scripted_move__", {
@@ -85,17 +115,91 @@ function useBasementDoor(scene: THREE.Group | undefined) {
           },
         })
       );
-
-      // after 2.5 seconds close the door
-      setTimeout(() => {
-        closeDoor();
-      }, 3200);
     }
+    // close after a bit
+    setTimeout(() => {
+      closeDoor();
+    }, 3200);
+  }
+
+  function tryDoorEndTeleport(): boolean {
+
+
+
+    const doorEnd = _doorEndRef.current;
+
+
+    const doorStart = _doorStartRef.current;
+    if (!doorEnd || !doorStart) return false;
+    // Check proximity to DoorEnd
+    const endPos = new THREE.Vector3();
+    doorEnd.getWorldPosition(endPos);
+    const dist = endPos.distanceTo(camera.position);
+    const threshold = 1.0; // meters
+    if (dist > threshold) return false;
+
+    
+    // first walk towards door end (if not close enough yet)
+    const doorPos = new THREE.Vector3();
+    if (!doorEnd) return false;
+    doorEnd.getWorldPosition(doorPos);
+    const distToDoorEnd = doorPos.distanceTo(camera.position);
+    const approachThreshold = 1;
+    if (distToDoorEnd > approachThreshold) {
+      console.log("Approaching DoorEnd before teleport");
+      window.dispatchEvent(
+        new CustomEvent("__scripted_move__", {
+          detail: { durationSec: 1, distance: distToDoorEnd},
+        })
+      );
+      setTimeout(() => {
+        tryDoorEndTeleport();
+      },1000);
+    }
+
+
+    // Map player's local XZ offset relative to DoorEnd onto DoorStart, preserving distance and side offset
+    const endMatrix = new THREE.Matrix4().copy(doorEnd.matrixWorld);
+    const invEndMatrix = new THREE.Matrix4().copy(endMatrix).invert();
+    const startMatrix = new THREE.Matrix4().copy(doorStart.matrixWorld);
+
+    const playerWorld = new THREE.Vector3().copy(camera.position);
+    const playerLocalToEnd = playerWorld.clone().applyMatrix4(invEndMatrix);
+    // Preserve only ground-plane offset; Y handled by keepY
+    const localXZ = new THREE.Vector3(playerLocalToEnd.x, 0, playerLocalToEnd.z);
+    const targetWorld = localXZ.clone().applyMatrix4(startMatrix);
+
+
+    const distanceOfPlayerFromDoorEnd = Math.hypot(playerLocalToEnd.x, playerLocalToEnd.z);
+
+    // Compute yaw so the player looks at DoorStart
+    const startPos = new THREE.Vector3();
+    doorStart.getWorldPosition(startPos);
+
+    const startTeleportPos = new THREE.Vector3();
+    doorStart.getWorldPosition(startTeleportPos);
+    startTeleportPos.sub(new THREE.Vector3(distanceOfPlayerFromDoorEnd, 0, 0)); // adjust for door center
+
+    const lookDir = new THREE.Vector3().subVectors(startPos, startTeleportPos);
+    lookDir.y = 0;
+    lookDir.normalize();
+    const yaw = Math.atan2(lookDir.x, lookDir.z);
+
+    // Teleport player (preserve current Y/height) and set yaw to face the door
+    window.dispatchEvent(
+      new CustomEvent("__teleport_to__", {
+        detail: { x: targetWorld.x, z: targetWorld.z, keepY: true, yaw: yaw  },
+      })
+    );
+
+    // Open DoorStart (without forced forward move by default)
+    openStartDoor(true);
+    return true;
   }
 
   function closeDoor() {
-    const door = _doorRef.current;
-    if (!door || !openedRef.current) return;
+    const door = _doorStartRef.current;
+    if (!door) return;
     targetYRef.current = initialYRef.current;
     openingRef.current = true;
     openedRef.current = false;
@@ -110,43 +214,6 @@ export default function Basement(props: ThreeElements["group"]) {
   const gltf = useGLTF(url);
 
   useBasementDoor(gltf.scene);
-
-  useEffect(() => {
-    if (!gltf.scene) return;
-    // find the light
-    const light = gltf.scene.getObjectByName("Point") as
-      | THREE.PointLight
-      | undefined;
-
-    if (light) {
-      light.color = new THREE.Color("#f0e68c");
-      light.intensity = 0.3;
-      light.distance = 8;
-    }
-
-    const lampPoint1 = gltf.scene.getObjectByName("LampPoint_1") as
-      | THREE.PointLight
-      | undefined;
-    if (lampPoint1) {
-      lampPoint1.color = new THREE.Color("#f0e68c");
-      lampPoint1.intensity = 0.3;
-      lampPoint1.distance = 8;
-    }
-
-    gltf.scene.traverse((obj) => {
-        // Enable shadows on meshes
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyObj = obj as any;
-        if (anyObj.isMesh) {
-            anyObj.castShadow = false;
-            anyObj.receiveShadow = false;
-
-            if (anyObj.material) {
-                anyObj.material.envMapIntensity = 0.5;
-            }
-        }
-    });
-  }, [gltf.scene]);
 
   return (
     <group {...props}>
