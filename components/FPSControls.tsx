@@ -14,6 +14,9 @@ export default function FPSControls({
   eyeHeight = 1.6,
   capsuleRadius = 0.3,
   capsuleHeight = 1.0,
+  // Initial view orientation (radians). If initialLookAt is set, it takes priority.
+  initialYaw,
+  initialPitch,
 
   // Bobbing config
   bobEnabled = true,
@@ -48,6 +51,10 @@ export default function FPSControls({
   eyeHeight?: number;
   capsuleRadius?: number;
   capsuleHeight?: number;
+  /** Initial yaw in radians (rotation around Y). Optional. */
+  initialYaw?: number;
+  /** Initial pitch in radians (rotation around X). Optional and clamped to ~+-90deg. */
+  initialPitch?: number;
 
   // Bobbing config
   bobEnabled?: boolean;
@@ -122,6 +129,23 @@ export default function FPSControls({
   } | null>(null);
   const lookMat = useMemo(() => new Matrix4(), []);
   const targetQuat = useMemo(() => new Quaternion(), []);
+
+  // Apply initial view direction on mount
+  useEffect(() => {
+    // Only set once on mount; leave subsequent control to PLC/touch
+    if (typeof initialYaw === "number" || typeof initialPitch === "number") {
+      camera.rotation.order = "YXZ";
+      if (typeof initialYaw === "number") {
+        camera.rotation.y = initialYaw;
+      }
+      if (typeof initialPitch === "number") {
+        const lim = Math.PI / 2 - 0.01;
+        camera.rotation.x = Math.max(-lim, Math.min(lim, initialPitch));
+      }
+    }
+    // We only want to run this once on mount, not when camera changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Detect touch devices to disable pointer lock and use touch look instead
   useEffect(() => {
