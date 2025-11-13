@@ -33,6 +33,9 @@ export default function SceneCanvas({
 }) {
   // Access sound inside Canvas to resume on pointer lock and trigger SFX
   // Note: useSound must be used within SoundProvider, so we read it in a nested helper component below.
+  // Change this to adjust the player's starting facing direction (in radians).
+  // 0 looks toward -Z (default three.js), +Math.PI/2 looks toward +X, -Math.PI/2 toward -X, Math.PI toward +Z.
+  const INITIAL_YAW = Math.PI / 2; // face toward -X by default
   return (
     <Canvas
       id="r3f-canvas"
@@ -81,6 +84,7 @@ export default function SceneCanvas({
               eyeHeight={3.85}
               capsuleHeight={1.85}
               capsuleRadius={0.25}
+              initialYaw={INITIAL_YAW}
               onLockChange={(locked) => {
                 // Also resume audio on lock
                 window.dispatchEvent(
