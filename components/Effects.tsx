@@ -13,7 +13,7 @@ import { BlendFunction } from "postprocessing";
 export default function Effects({ isTouch }: { isTouch: boolean }) {
   return (
     <EffectComposer enableNormalPass multisampling={isTouch ? 0 : 4}>
-      <HueSaturation saturation={-0.25} />
+      <HueSaturation saturation={-0.15} />
    
       <Vignette eskil={false} offset={0.23} darkness={0.9} />
       <Noise

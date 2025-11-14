@@ -21,6 +21,22 @@ function useBasementDoor(scene: THREE.Group | undefined) {
   // Locate the door in the loaded scene graph
   useEffect(() => {
     if (!scene) return;
+
+    const doorFrameCutter = scene.getObjectByName("DoorStartCutter") as
+      | THREE.Object3D
+      | undefined;
+
+    if (doorFrameCutter) {
+      doorFrameCutter.visible = false;
+    }
+
+    const doorFrameCutterEnd = scene.getObjectByName("DoorCutterEnd") as
+      | THREE.Object3D
+      | undefined;
+    if (doorFrameCutterEnd) {
+      doorFrameCutterEnd.visible = false;
+    }
+
     const doorStart = scene.getObjectByName("DoorStart") as
       | THREE.Object3D
       | undefined;
@@ -90,8 +106,8 @@ function useBasementDoor(scene: THREE.Group | undefined) {
       console.warn("DoorStart not found");
       return;
     };
-    // Rotate 90 degrees around Y to open
-    targetYRef.current = initialYRef.current + Math.PI / 2;
+    // Rotate 90 degrees around Y to open (invert direction to correct opening side)
+    targetYRef.current = initialYRef.current - Math.PI / 2;
     openingRef.current = true;
     // play open slice
     sound.playDoorOpen();
@@ -188,7 +204,7 @@ function useBasementDoor(scene: THREE.Group | undefined) {
     // Teleport player (preserve current Y/height) and set yaw to face the door
     window.dispatchEvent(
       new CustomEvent("__teleport_to__", {
-        detail: { x: targetWorld.x, z: targetWorld.z, keepY: true, yaw: yaw  },
+        detail: { x: targetWorld.x + 0.8, z: targetWorld.z, keepY: true, yaw: yaw  },
       })
     );
 
@@ -211,7 +227,7 @@ function useBasementDoor(scene: THREE.Group | undefined) {
 export default function Basement(props: ThreeElements["group"]) {
   const url = "/optimized/basement.glb";
 
-  const gltf = useGLTF(url);
+  const gltf = useGLTF(url, true);
 
   useBasementDoor(gltf.scene);
 

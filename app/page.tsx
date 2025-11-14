@@ -4,6 +4,7 @@ import Preloader from "@/components/Preloader";
 import useIsTouch from "@/hooks/useIsTouch";
 import useViewportVH from "@/hooks/useViewportVH";
 import SceneCanvas from "@/components/SceneCanvas";
+import { useSearchParams } from "next/navigation";
 import TitleScreen from "@/components/TitleScreen";
 import { GameUI } from "@/components/game-ui/GameUI";
 import { MobileUI } from "@/components/mobile/MobileUI";
@@ -12,6 +13,8 @@ import { useGameState } from "@/store/gameState";
 export default function Home() {
   const isTouch = useIsTouch();
   const { flashOn, started, setStarted, setLocked } = useGameState();
+  const params = useSearchParams();
+  const editor = (params.get("editor") ?? "") !== ""; // any value enables
 
   useViewportVH();
 
@@ -28,12 +31,15 @@ export default function Home() {
           console.log("[page.tsx] pointer lock change:", v);
           setLocked(v);
         }}
+        editor={editor}
       />
-      {!started && <Preloader />}
-      <TitleScreen started={started} onStart={() => setStarted(true)} />
-      
-      <GameUI isTouch={isTouch} />
-      {isTouch && <MobileUI />}
+      {!editor && !started && <Preloader />}
+      {!editor && (
+        <TitleScreen started={started} onStart={() => setStarted(true)} />
+      )}
+
+      {!editor && <GameUI isTouch={isTouch} />}
+      {!editor && isTouch && <MobileUI />}
     </div>
   );
 }

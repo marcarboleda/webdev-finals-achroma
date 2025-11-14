@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "lights": [
+    {
+      "id": "fb10b68d-4991-46d5-b753-0d9b73b612d3",
+      "type": "rect",
+      "position": [
+        -4.55921824169753,
+        3.1972475271969145,
+        0.04973114698649572
+      ],
+      "rotation": [
+        -1.5707963267948966,
+        0,
+        0
+      ],
+      "color": "#b5c18e",
+      "intensity": 3,
+      "width": 1.5,
+      "height": 1
+    },
+    {
+      "id": "5182de41-c1c2-41df-a0e0-5b11ed66b4d1",
+      "type": "rect",
+      "position": [
+        -11.29720206593407,
+        3.1138708698435775,
+        -0.008644628457127976
+      ],
+      "rotation": [
+        -1.5797025925714943,
+        0,
+        0
+      ],
+      "color": "#b5c18e",
+      "intensity": 3,
+      "width": 1.5,
+      "height": 1
+    },
+    {
+      "id": "7ca22c94-e50a-4ac4-b160-37bba6d45f10",
+      "type": "rect",
+      "position": [
+        -12.203711755445672,
+        3.1783749648121304,
+        -8.526258157018567
+      ],
+      "rotation": [
+        -900,
+        0,
+        0
+      ],
+      "color": "#b5c18e",
+      "intensity": 3,
+      "width": 1.5,
+      "height": 1
+    }
+  ],
+  "effects": [
+    {
+      "id": "f40ba1ec-b501-42c1-911b-e2e67adc79d9",
+      "type": "HueSaturation",
+      "enabled": true,
+      "params": {
+        "saturation": -0.25
+      }
+    },
+    {
+      "id": "14c562ab-4048-4527-b725-8dbf5fb7f7dc",
+      "type": "BrightnessContrast",
+      "enabled": true,
+      "params": {
+        "brightness": 0,
+        "contrast": 0
+      }
+    },
+    {
+      "id": "cd7905c5-7855-4f84-9c22-1949f8152be0",
+      "type": "Vignette",
+      "enabled": true,
+      "params": {
+        "offset": 0.23,
+        "darkness": 0.9
+      }
+    },
+    {
+      "id": "33087722-dfc3-4d66-9174-85ae7bc26957",
+      "type": "Noise",
+      "enabled": true,
+      "params": {
+        "opacity": 0.3
+      }
+    },
+    {
+      "id": "b204f1ef-0525-435e-8013-7aabdb820765",
+      "type": "ChromaticAberration",
+      "enabled": true,
+      "params": {
+        "offsetX": 0.001,
+        "offsetY": 0.001
+      }
+    }
+  ]
+}

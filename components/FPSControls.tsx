@@ -486,7 +486,7 @@ export default function FPSControls({
         ref={bodyRef}
         colliders={false}
         canSleep={false}
-        position={[8,0,1.5]}
+        position={[5 ,0, 0]}
         linearDamping={4}
         angularDamping={1}
         enabledRotations={[false, false, false]}
