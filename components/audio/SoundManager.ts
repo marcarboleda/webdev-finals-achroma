@@ -63,7 +63,9 @@ export class SoundManager {
 
   constructor(listener: THREE.AudioListener) {
     this.listener = listener;
-    this.context = (listener.context as unknown as AudioContext) ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.context = (listener.context as unknown as AudioContext) ?? new (window.AudioContext || (window as any).webkitAudioContext)({
+      latencyHint: "playback",
+    } as any);
 
     // Create routing graph: source -> group -> master -> destination
     const ctx = this.context;

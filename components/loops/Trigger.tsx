@@ -17,9 +17,19 @@ type TriggerBoxProps = {
  * Rapier sensor trigger: fires on player body entering/exiting the volume.
  * Use inside Physics. Set `once` to auto-disable after first enter.
  */
-export function TriggerBox({ position, size, onEnter, onExit, once }: TriggerBoxProps) {
+export function TriggerBox({
+  position,
+  size,
+  onEnter,
+  onExit,
+  once,
+}: TriggerBoxProps) {
   const doneRef = useRef(false);
-  const half: [number, number, number] = [size[0] / 2, size[1] / 2, size[2] / 2];
+  const half: [number, number, number] = [
+    size[0] / 2,
+    size[1] / 2,
+    size[2] / 2,
+  ];
   return (
     <RigidBody type="fixed" colliders={false} position={position}>
       <CuboidCollider
@@ -50,7 +60,13 @@ type ProximityTriggerProps = {
 /**
  * Simple proximity trigger using camera distance. Works without physics.
  */
-export function ProximityTrigger({ center, radius, onEnter, onExit, once }: ProximityTriggerProps) {
+export function ProximityTrigger({
+  center,
+  radius,
+  onEnter,
+  onExit,
+  once,
+}: ProximityTriggerProps) {
   const { camera } = useThree();
   const inRef = useRef(false);
   const doneRef = useRef(false);

@@ -19,7 +19,7 @@ export default function Page() {
     <Suspense>
       <Home />
     </Suspense>
-  )
+  );
 }
 
 function Home() {

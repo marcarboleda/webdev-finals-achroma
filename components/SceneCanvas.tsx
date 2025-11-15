@@ -7,6 +7,7 @@ import {
   Preload,
   Stats,
   AdaptiveDpr,
+  PerformanceMonitor,
   OrbitControls,
   TransformControls,
 } from "@react-three/drei";
@@ -48,6 +49,12 @@ export default function SceneCanvas({
   /** When true, enables level editor mode (OrbitControls + transform gizmos). */
   editor?: boolean;
 }) {
+  const dev = process.env.NODE_ENV !== "production";
+  const [lowPerf, setLowPerf] = useState(false);
+  const dprRange = useMemo<[number, number]>(
+    () => [1, isTouch ? (lowPerf ? 1.1 : 1.5) : (lowPerf ? 1.25 : 2)],
+    [isTouch, lowPerf]
+  );
   // Access sound inside Canvas to resume on pointer lock and trigger SFX
   // Note: useSound must be used within SoundProvider, so we read it in a nested helper component below.
   // Change this to adjust the player's starting facing direction (in radians).
@@ -61,7 +68,8 @@ export default function SceneCanvas({
           <Canvas
             id="r3f-canvas"
             shadows
-            dpr={[1, isTouch ? 1.5 : 2]}
+            frameloop="demand"
+            dpr={dprRange}
             gl={{
               outputColorSpace: SRGBColorSpace,
               antialias: !isTouch,
@@ -78,10 +86,14 @@ export default function SceneCanvas({
             <fog attach="fog" args={["#0a0a0a", 15, 35]} />
 
             <Suspense fallback={null}>
+              <PerformanceMonitor
+                onDecline={() => setLowPerf(true)}
+                onIncline={() => setLowPerf(false)}
+              />
               <SoundProvider>
                 <SoundBridge onPointerLockChange={onPointerLockChange} />
                 {/* No radio narration while editing */}
-                <Physics gravity={[0, -9.81, 0]} debug={!isTouch && !editor}>
+                <Physics gravity={[0, -9.81, 0]} debug={dev && !isTouch}>
                   {/* Always load the Basement scene in editor */}
                   <Basement position={[0, 1, 0]} />
 
@@ -95,14 +107,15 @@ export default function SceneCanvas({
                       position={[0, -0.5, 0]}
                     />
                   </RigidBody>
-
-                  <ContactShadows
-                    position={[0, -0.49, 0]}
-                    opacity={0.4}
-                    scale={30}
-                    blur={3}
-                    far={15}
-                  />
+                  {!lowPerf && (
+                    <ContactShadows
+                      position={[0, -0.49, 0]}
+                      opacity={0.35}
+                      scale={30}
+                      blur={3}
+                      far={15}
+                    />
+                  )}
                   {/* No FPS controls in editor (use OrbitControls) */}
 
                   {/* Optional: leave flashlight off while editing */}
@@ -110,9 +123,8 @@ export default function SceneCanvas({
               </SoundProvider>
 
               <Effects isTouch={isTouch} />
-              {isTouch && <AdaptiveDpr pixelated />}
-
-              <Stats className="stats-top-right" />
+              {(isTouch || lowPerf) && <AdaptiveDpr pixelated />}
+              {dev && <Stats className="stats-top-right" />}
 
               {/* Editor camera/transform tools inside Canvas */}
               <EditorCanvasTools />
@@ -133,10 +145,10 @@ export default function SceneCanvas({
       <Canvas
         id="r3f-canvas"
         shadows
-        dpr={[1, isTouch ? 1.5 : 2]}
+        dpr={dprRange}
         gl={{
           outputColorSpace: SRGBColorSpace,
-          antialias: true,
+          antialias: !isTouch,
           powerPreference: "high-performance",
           toneMapping: ACESFilmicToneMapping,
           toneMappingExposure: 1.0,
@@ -150,6 +162,10 @@ export default function SceneCanvas({
         <fog attach="fog" args={["#0a0a0a", 15, 35]} />
 
         <Suspense fallback={null}>
+          <PerformanceMonitor
+            onDecline={() => setLowPerf(true)}
+            onIncline={() => setLowPerf(false)}
+          />
           <SoundProvider>
             <SoundBridge onPointerLockChange={onPointerLockChange} />{" "}
             {started && <RadioNarration />}
@@ -163,14 +179,15 @@ export default function SceneCanvas({
               <RigidBody type="fixed" colliders={false}>
                 <CuboidCollider args={[25, 0.1, 25]} position={[0, -0.5, 0]} />
               </RigidBody>
-
-              <ContactShadows
-                position={[0, -0.49, 0]}
-                opacity={0.4}
-                scale={30}
-                blur={3}
-                far={15}
-              />
+              {!lowPerf && (
+                <ContactShadows
+                  position={[0, -0.49, 0]}
+                  opacity={0.35}
+                  scale={30}
+                  blur={3}
+                  far={15}
+                />
+              )}
 
               {!editor && (
                 <FPSControls
@@ -204,9 +221,8 @@ export default function SceneCanvas({
           </SoundProvider>
 
           <Effects isTouch={isTouch} />
-          {isTouch && <AdaptiveDpr pixelated />}
-
-          <Stats className="stats-top-right" />
+          {(isTouch || lowPerf) && <AdaptiveDpr pixelated />}
+          {dev && <Stats className="stats-top-right" />}
 
           <Preload all />
         </Suspense>

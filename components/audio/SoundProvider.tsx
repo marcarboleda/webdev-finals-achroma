@@ -37,6 +37,18 @@ export default function SoundProvider({ children }: { children: React.ReactNode 
   const listenerRef = useRef<THREE.AudioListener | null>(null);
   const soundRef = useRef<SoundManager | null>(null);
 
+  // Ensure three.js uses an AudioContext configured for playback (lower latency not required)
+  if (typeof (THREE as any).AudioContext?.getContext === "function") {
+    const current: AudioContext | undefined = (THREE as any).AudioContext.getContext?.();
+    if (!current || current.state === "closed") {
+      try {
+        const Ctor = (window as any).AudioContext || (window as any).webkitAudioContext;
+        const ctx: AudioContext = new Ctor({ latencyHint: "playback" });
+        (THREE as any).AudioContext.setContext?.(ctx);
+      } catch {}
+    }
+  }
+
   if (!listenerRef.current) {
     listenerRef.current = new THREE.AudioListener();
   }
