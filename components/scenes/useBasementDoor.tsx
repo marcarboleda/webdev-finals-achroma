@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import { useSound } from "@/components/audio/useSound";
 import { consumeInteract } from "../inputStore";
+import { useGameState } from "@/store/gameState";
 
 function useBasementDoor(scene: THREE.Group | undefined) {
   const { sound } = useSound();
@@ -201,6 +202,11 @@ function useBasementDoor(scene: THREE.Group | undefined) {
         },
       })
     );
+
+    // Increment loop after successful teleport to DoorStart
+    try {
+      useGameState.getState().incrementLoop();
+    } catch {}
 
     // Open DoorStart (without forced forward move by default)
     openStartDoor(true);

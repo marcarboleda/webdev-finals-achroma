@@ -7,6 +7,9 @@ import SceneCanvas from "@/components/SceneCanvas";
 import { useSearchParams } from "next/navigation";
 import TitleScreen from "@/components/TitleScreen";
 import { GameUI } from "@/components/game-ui/GameUI";
+// Import loop examples to ensure registration happens on app mount
+import "@/components/loops/examples/Loop0";
+import "@/components/loops/examples/Loop1";
 import { MobileUI } from "@/components/mobile/MobileUI";
 import { useGameState } from "@/store/gameState";
 import { Suspense } from "react";

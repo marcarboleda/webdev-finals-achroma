@@ -26,6 +26,7 @@ import dynamic from "next/dynamic";
 import * as THREE from "three";
 import { useEditorStore } from "./editor/editorStore";
 import BasementWalls from "./scenes/BasementWalls";
+import { LoopManager } from "./loops/LoopManager";
 
 // Lazy-load editor sidebar to keep normal play mode lean
 const LevelEditorSidebar = dynamic(() => import("./editor/LevelEditor"), {
@@ -196,6 +197,9 @@ export default function SceneCanvas({
               )}
 
               {flashOn && <Flashlight />}
+
+              {/* Loop-specific content: spawns, triggers, SFX per loop */}
+              <LoopManager />
             </Physics>
           </SoundProvider>
 
