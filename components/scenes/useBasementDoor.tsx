@@ -60,7 +60,10 @@ function useBasementDoor(scene: THREE.Group | undefined) {
     sound.playDoorClose();
   }
 
-  function openStartDoor(withScriptedMove: boolean) {
+  function openStartDoor(
+    withScriptedMove: boolean,
+    distanceToDoor: number = 0
+  ) {
     const door = _doorStartRef.current;
     if (!door) {
       console.warn("DoorStart not found");
@@ -82,8 +85,8 @@ function useBasementDoor(scene: THREE.Group | undefined) {
       window.dispatchEvent(
         new CustomEvent("__scripted_move__", {
           detail: {
-            durationSec: 2.2,
-            distance: 2.4,
+            durationSec: 2.8,
+            distance: 2.6 + distanceToDoor / 2,
             lockLook: true,
             lookAt,
             lookSlerp: 2.5,
@@ -108,9 +111,9 @@ function useBasementDoor(scene: THREE.Group | undefined) {
     const doorPos = new THREE.Vector3();
     door.getWorldPosition(doorPos);
     const dist = doorPos.distanceTo(camera.position);
-    const threshold = 1.0; // meters
+    const threshold = 2.0; // meters
     if (dist <= threshold) {
-      openStartDoor(withScriptedMove);
+      openStartDoor(withScriptedMove, dist);
     }
   }
 

@@ -15,7 +15,7 @@
         0
       ],
       "color": "#b5c18e",
-      "intensity": 3,
+      "intensity": 4.2,
       "width": 1.5,
       "height": 1
     },
@@ -33,7 +33,7 @@
         0
       ],
       "color": "#b5c18e",
-      "intensity": 3,
+      "intensity": 3.95,
       "width": 1.5,
       "height": 1
     },
@@ -51,7 +51,7 @@
         0
       ],
       "color": "#b5c18e",
-      "intensity": 3,
+      "intensity": 4.45,
       "width": 1.5,
       "height": 1
     },
@@ -72,6 +72,17 @@
       "intensity": 0.6,
       "width": 1.5,
       "height": 1
+    },
+    {
+      "id": "fcdf9e5e-4e1c-4402-8691-e9132ffe7238",
+      "type": "ambient",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "color": "#454545",
+      "intensity": 1.05
     }
   ],
   "effects": [

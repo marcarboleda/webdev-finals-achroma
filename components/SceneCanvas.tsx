@@ -71,7 +71,7 @@ export default function SceneCanvas({
               alpha: false,
               precision: isTouch ? "mediump" : "highp",
             }}
-            camera={{ position: [0, 1.8, 5], fov: 70 }}
+            camera={{ position: [0, 1.8, 5], fov: 120 }}
           >
             <color attach="background" args={["#000"]} />
             <fog attach="fog" args={["#0a0a0a", 15, 35]} />
@@ -143,7 +143,7 @@ export default function SceneCanvas({
           alpha: false,
           precision: isTouch ? "mediump" : "highp",
         }}
-        camera={{ position: [0, 1.8, 5], fov: 70 }}
+        camera={{ position: [0, 1.8, 5], fov: 55 }}
       >
         <color attach="background" args={["#000"]} />
         <fog attach="fog" args={["#0a0a0a", 15, 35]} />
@@ -152,7 +152,7 @@ export default function SceneCanvas({
           <SoundProvider>
             <SoundBridge onPointerLockChange={onPointerLockChange} />{" "}
             {started && <RadioNarration />}
-            <Physics gravity={[0, -9.81, 0]} debug={!isTouch && !editor}>
+            <Physics gravity={[0, -9.81, 0]} debug={false}>
               <Basement position={[0, 1, 0]} />
 
               {/* Level lights rendered from JSON file (editor renders its own) */}
@@ -174,7 +174,7 @@ export default function SceneCanvas({
               {!editor && (
                 <FPSControls
                   speed={1.0}
-                  eyeHeight={3.85}
+                  eyeHeight={3.75}
                   capsuleHeight={1.85}
                   capsuleRadius={0.25}
                   initialYaw={INITIAL_YAW}

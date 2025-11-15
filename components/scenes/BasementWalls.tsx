@@ -39,7 +39,7 @@ const Wall: React.FC<WallProps> = ({ startPos, endPos, height, depth }) => {
 export default function BasementWalls({ scene }: { scene: THREE.Group }) {
   return (
     <>
-      {/* <KinematicMeshCollider scene={scene} name={"DoorStart"} /> */}
+      <KinematicMeshCollider scene={scene} name={"DoorStart"} />
 
       <Wall
         startPos={[-0.2, 0.2, 0.6]}
